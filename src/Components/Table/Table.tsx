@@ -8,7 +8,6 @@ interface TableProps {
     data: Row[]
     selected: boolean[]
     yahtzee: Yahtzee
-    addy: string
 }
 
 interface Row {
@@ -72,9 +71,9 @@ const Table: FC<TableProps> = (props: TableProps) => {
 
   function usedCat(category: number, player: number): boolean {
     if (player == 1) {
-      return props.yahtzee.state.player1_scores[category] >= 0;
+      return props.yahtzee.gameState.player1_scores[category] >= 0;
     } else if (player == 2) {
-      return props.yahtzee.state.player2_scores[category] >= 0;
+      return props.yahtzee.gameState.player2_scores[category] >= 0;
     } else {
       return false;
     }
@@ -82,7 +81,7 @@ const Table: FC<TableProps> = (props: TableProps) => {
 
   async function onclick(rowind: number, cellind: number) {
     if (cellind > 0) {
-      let promise = await props.yahtzee.bankRoll(rowind, props.addy)
+      let promise = await props.yahtzee.bankRoll(rowind);
       console.log("banking roll with dice: ")
       console.log(rowind)
     }

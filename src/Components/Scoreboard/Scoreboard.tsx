@@ -8,7 +8,6 @@ import Yahtzee from '../../Services/API';
 interface ScoreboardProps {
    yahtzee: Yahtzee
    selected: boolean[]
-   addy: string
 }
 
 const Scoreboard: FC<ScoreboardProps> = (props: ScoreboardProps) => {
@@ -24,21 +23,21 @@ const Scoreboard: FC<ScoreboardProps> = (props: ScoreboardProps) => {
    for (let i = 0; i < categories.length; i++) {
       data[i] = {
          'category': categories[i], 
-         'player1':  props.yahtzee.state.player1_scores[i],
-         'player2': props.yahtzee.state.player2_scores[i]
+         'player1':  props.yahtzee.gameState.player1_scores[i],
+         'player2': props.yahtzee.gameState.player2_scores[i]
       }
    }
    let columns: Column[] = [
       { Header: 'Category', accessor: 'category' },
-      { Header: `Player 1: ${props.yahtzee.state.player1}`, accessor: 'player1' },
-      { Header: `Player 2: ${props.yahtzee.state.player2}`, accessor: 'player2' }
+      { Header: `Player 1: ${props.yahtzee.gameState.player1}`, accessor: 'player1' },
+      { Header: `Player 2: ${props.yahtzee.gameState.player2}`, accessor: 'player2' }
    ];
 
 
    return (
 
       <ScoreboardWrapper>
-         <Table yahtzee={props.yahtzee} columns={columns} data={data} selected={props.selected} addy={props.addy}/>
+         <Table yahtzee={props.yahtzee} columns={columns} data={data} selected={props.selected}/>
       </ScoreboardWrapper>
    );
 

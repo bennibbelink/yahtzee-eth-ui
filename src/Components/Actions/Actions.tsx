@@ -6,7 +6,6 @@ import Yahtzee from '../../Services/API';
 interface ActionsProps {
    yahtzee: Yahtzee
    selected: boolean[]
-   address: string
 }
 
 const Actions: FC<ActionsProps> = (props: ActionsProps) => {
@@ -17,7 +16,7 @@ const Actions: FC<ActionsProps> = (props: ActionsProps) => {
    );
 
    async function handleClick() {
-      await props.yahtzee.rollDice(props.selected, props.address);
+      await props.yahtzee.rollDice(props.selected);
    }
 
 }

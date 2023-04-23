@@ -3,7 +3,8 @@ import './App.css';
 import Scoreboard from './Components/Scoreboard/Scoreboard';
 import Dice from './Components/Dice/Dice';
 import Actions from './Components/Actions/Actions';
-// import { MetamaskStateProvider, useMetamask } from "use-metamask";
+import { MetamaskStateProvider } from "use-metamask";
+import { useMetaMask } from 'metamask-react'
 import Yahtzee from './Services/API';
 
 
@@ -14,11 +15,12 @@ function App() {
 
   const [selected, setSelected] = useState<boolean[]>([true, true, true, true, true]);
 
-  const [player, setPlayer] = useState<number>(0);
+  // const [player, setPlayer] = useState<number>(0);
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // let web3 = new Web3("https://127.0.0.1:7545");
+  // const { status, connect, account, chainId, ethereum } = useMetaMask();
+
 
   useEffect(() => {
     yahtzee.dumpScore().then(() => {
@@ -26,34 +28,31 @@ function App() {
         setLoading(false);
       });
     });
-  })
-
-  const players = ['0x5dc6E6684BAE748e28CC80078c9E88Cb16aC72f1',
-      '0x103Ce0301b23A364084Db2f1F1D3A203CDCDf819'];
+  });
 
   function isInGameFirst(): boolean {
-    return (players[player] === yahtzee.state.player1 || players[player] === yahtzee.state.player2) 
-      && yahtzee.emptyAdd === yahtzee.state.player2;
+    return (yahtzee.currentAccount === yahtzee.gameState.player1 || yahtzee.currentAccount === yahtzee.gameState.player2) 
+      && yahtzee.emptyAdd === yahtzee.gameState.player2;
   }
 
   function isInStartedGame(): boolean {
-    return (players[player] === yahtzee.state.player1 || players[player] === yahtzee.state.player2)
-      && yahtzee.state.turn !== yahtzee.emptyAdd;
+    console.log(yahtzee.gameState.turn)
+    return (yahtzee.currentAccount === yahtzee.gameState.player1 || yahtzee.currentAccount === yahtzee.gameState.player2)
+      && yahtzee.gameState.turn !== yahtzee.emptyAdd;
   }
 
   function notInGame(): boolean {
-    return (players[player] !== yahtzee.state.player1 && players[player] !== yahtzee.state.player2
-      && yahtzee.state.turn !== yahtzee.emptyAdd)
+    return (yahtzee.currentAccount !== yahtzee.gameState.player1 && yahtzee.currentAccount !== yahtzee.gameState.player2
+      && yahtzee.gameState.turn !== yahtzee.emptyAdd)
   }
-
   
   return (
-    // <MetamaskStateProvider>
+    <MetamaskStateProvider>
     <div className="App">
       <header className="App-header">
 
             <h1>Blockchain Yahtzee</h1>
-            <button onClick={() => {setPlayer((player + 1) % 2)}}>player: {player}</button>
+            {/* <button onClick={() => {setPlayer((player + 1) % 2)}}>player: {player}</button> */}
 
             { 
               loading ? null :
@@ -61,19 +60,17 @@ function App() {
               isInGameFirst() ? <div> Waiting for other player to join</div> : 
               isInStartedGame() ? 
               <div>
-                <Scoreboard yahtzee={yahtzee} selected={selected} addy={players[player]}/>
-                <Dice state={yahtzee.state} selected={selected} setSelected={setSelected}/>
-                <Actions yahtzee={yahtzee} selected={selected} address={players[player]}></Actions>
+                <Scoreboard yahtzee={yahtzee} selected={selected}/>
+                <Dice state={yahtzee.gameState} selected={selected} setSelected={setSelected}/>
+                <Actions yahtzee={yahtzee} selected={selected}></Actions>
               </div> 
               :
-              <button onClick={() => {yahtzee.joinGame(players[player])}}>Join game</button>
+              <button onClick={() => {yahtzee.joinGame()}}>Join game</button>
             }
-            
-         
       
       </header>
     </div>
-    // </MetamaskStateProvider>
+    </MetamaskStateProvider>
   );
 }
 
