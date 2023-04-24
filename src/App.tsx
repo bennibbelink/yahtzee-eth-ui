@@ -3,75 +3,133 @@ import './App.css';
 import Scoreboard from './Components/Scoreboard/Scoreboard';
 import Dice from './Components/Dice/Dice';
 import Actions from './Components/Actions/Actions';
-import { MetamaskStateProvider } from "use-metamask";
-import { useMetaMask } from 'metamask-react'
 import Yahtzee from './Services/API';
+import { State } from './Types';
 
 
 
 function App() {
-
-  const [yahtzee, ] = useState<Yahtzee>(new Yahtzee());
+  const init_state = {
+    player1: Yahtzee.emptyAdd,
+    player2: Yahtzee.emptyAdd,
+    rollsLeft: 3,
+    dice: Array(5).fill(1),
+    turn: Yahtzee.emptyAdd,
+    player1_scores: Array(15).fill(-1),
+    player2_scores: Array(15).fill(-1)
+  };
+  const [yahtzee, setYahtzee] = useState<Yahtzee>();
+  const [state, setState] = useState<State>(init_state);
 
   const [selected, setSelected] = useState<boolean[]>([true, true, true, true, true]);
 
-  // const [player, setPlayer] = useState<number>(0);
+  // local state vars
+  const [address, setAddress] = useState<string>("");
+  const [key, setKey] = useState<string>("");
+  const [chainId, setChainId] = useState<string>("");
 
-  const [loading, setLoading] = useState<boolean>(false);
-
-  // const { status, connect, account, chainId, ethereum } = useMetaMask();
+  // 0: not in game
+  // 1: in game first
+  // 2: in started game
+  const [playerStatus, setPlayerStatus] = useState<number>(0);
+  const NOT_IN_GAME = 0;
+  const IN_GAME_FIRST = 1;
+  const IN_STARTED_GAME = 2;
+  const NOT_IN_STARTED_GAME = 3;
 
 
   useEffect(() => {
-    yahtzee.dumpScore().then(() => {
-      yahtzee.dumpTurn().then(() => {
-        setLoading(false);
-      });
-    });
-  });
+    if (chainId === "")
+      getChainId()
+    if (yahtzee) {
+      console.log('useeffect')
+      console.log(yahtzee.gameState)
+      setPlayerStatus(getPlayerStatus());
+    }
+  }, [state]);
 
-  function isInGameFirst(): boolean {
-    return (yahtzee.currentAccount === yahtzee.gameState.player1 || yahtzee.currentAccount === yahtzee.gameState.player2) 
-      && yahtzee.emptyAdd === yahtzee.gameState.player2;
-  }
-
-  function isInStartedGame(): boolean {
-    console.log(yahtzee.gameState.turn)
-    return (yahtzee.currentAccount === yahtzee.gameState.player1 || yahtzee.currentAccount === yahtzee.gameState.player2)
-      && yahtzee.gameState.turn !== yahtzee.emptyAdd;
-  }
-
-  function notInGame(): boolean {
-    return (yahtzee.currentAccount !== yahtzee.gameState.player1 && yahtzee.currentAccount !== yahtzee.gameState.player2
-      && yahtzee.gameState.turn !== yahtzee.emptyAdd)
+  function getPlayerStatus(): number {
+    if (yahtzee) {
+      if (state.turn !== Yahtzee.emptyAdd) { // there is a game in progress
+        if (state.player1 === yahtzee.currentAccount || state.player2 === yahtzee.currentAccount) { // we are in it
+          return IN_STARTED_GAME;
+        } else {
+          return NOT_IN_STARTED_GAME;
+        }
+      } else {
+        if (state.player1 === yahtzee.currentAccount) { // we are waiting for a player
+          return IN_GAME_FIRST;
+        } else { // we aren't in an available game 
+          return NOT_IN_GAME;
+        }
+      }
+    } else {
+      return -1;
+    }
   }
   
   return (
-    <MetamaskStateProvider>
+    // <MetamaskStateProvider>
     <div className="App">
       <header className="App-header">
 
             <h1>Blockchain Yahtzee</h1>
-            {/* <button onClick={() => {setPlayer((player + 1) % 2)}}>player: {player}</button> */}
 
             { 
-              loading ? null :
-              notInGame() ? <div>Game in progress, please wait for the next game to start.</div> :
-              isInGameFirst() ? <div> Waiting for other player to join</div> : 
-              isInStartedGame() ? 
-              <div>
-                <Scoreboard yahtzee={yahtzee} selected={selected}/>
-                <Dice state={yahtzee.gameState} selected={selected} setSelected={setSelected}/>
-                <Actions yahtzee={yahtzee} selected={selected}></Actions>
-              </div> 
+              yahtzee && playerStatus >= 0 ? (
+                playerStatus === NOT_IN_STARTED_GAME ?  <div>Game in progress, please wait for the next game to start.</div> :
+                playerStatus === IN_GAME_FIRST ? <div> Waiting for another player to join... </div> : 
+                playerStatus === IN_STARTED_GAME ? 
+                    <div>
+                      <Scoreboard yahtzee={yahtzee} selected={selected}/>
+                      <Dice state={state} selected={selected} setSelected={setSelected}/>
+                      <Actions yahtzee={yahtzee} selected={selected}></Actions>
+                    </div> :
+                playerStatus === NOT_IN_GAME ?
+                    <button onClick={() => {yahtzee.joinGame()}}>Join game</button> : null
+              )
+
+
+              
               :
-              <button onClick={() => {yahtzee.joinGame()}}>Join game</button>
+              
+              <form onSubmit={handleSubmit}>
+                <label>Enter your account address:
+                  <input type="text" value={address} onChange={(e) => {setAddress(e.target.value)}}/>
+                </label>
+                <label>Enter your account's private key:
+                  <input type="text" value={key} onChange={(e) => {setKey(e.target.value)}}/>
+                </label>
+                <label> Current Chain ID: {chainId}</label>
+                <label> Submit:
+                  <input type="button" onClick={handleSubmit}/>
+                </label>
+                <p>{playerStatus < 0 ? "There was an error with your account info. Please re-enter your information" : ""}</p>
+              </form>
+              
+
+
+
+              
+              
+              
+              
             }
       
       </header>
     </div>
-    </MetamaskStateProvider>
+    // </MetamaskStateProvider>
   );
+
+  async function handleSubmit() {
+    let y: Yahtzee = new Yahtzee(address, key, state, setState);
+    await y.setup();
+    setYahtzee(y)
+  }
+
+  async function getChainId() {
+    setChainId(await Yahtzee.getChainId());
+  }
 }
 
 export default App;
