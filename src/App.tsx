@@ -1,10 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import './App.css';
+import {Form, Input} from './App.styled'
 import Scoreboard from './Components/Scoreboard/Scoreboard';
 import Dice from './Components/Dice/Dice';
 import Actions from './Components/Actions/Actions';
 import Yahtzee from './Services/API';
 import { State } from './Types';
+import { Button } from './Components/Actions/Actions.styled';
 
 
 
@@ -27,6 +29,7 @@ function App() {
   const [address, setAddress] = useState<string>("");
   const [key, setKey] = useState<string>("");
   const [chainId, setChainId] = useState<string>("");
+  const [remember, setRemember] = useState<boolean>(false);
 
   // 0: not in game
   // 1: in game first
@@ -42,11 +45,10 @@ function App() {
     if (chainId === "")
       getChainId()
     if (yahtzee) {
-      console.log('useeffect')
-      console.log(yahtzee.gameState)
+      console.log(yahtzee.gameState);
       setPlayerStatus(getPlayerStatus());
     }
-  }, [state]);
+  });
 
   function getPlayerStatus(): number {
     if (yahtzee) {
@@ -67,14 +69,13 @@ function App() {
       return -1;
     }
   }
+
+  
   
   return (
-    // <MetamaskStateProvider>
     <div className="App">
       <header className="App-header">
-
-            <h1>Blockchain Yahtzee</h1>
-
+            <h1>YahtzeEth</h1>
             { 
               yahtzee && playerStatus >= 0 ? (
                 playerStatus === NOT_IN_STARTED_GAME ?  <div>Game in progress, please wait for the next game to start.</div> :
@@ -82,54 +83,79 @@ function App() {
                 playerStatus === IN_STARTED_GAME ? 
                     <div>
                       <Scoreboard yahtzee={yahtzee} selected={selected}/>
-                      <Dice state={state} selected={selected} setSelected={setSelected}/>
+                      <Dice yahtzee={yahtzee} selected={selected} setSelected={setSelected}/>
                       <Actions yahtzee={yahtzee} selected={selected}></Actions>
                     </div> :
                 playerStatus === NOT_IN_GAME ?
                     <button onClick={() => {yahtzee.joinGame()}}>Join game</button> : null
               )
 
-
-              
               :
               
-              <form onSubmit={handleSubmit}>
-                <label>Enter your account address:
-                  <input type="text" value={address} onChange={(e) => {setAddress(e.target.value)}}/>
-                </label>
-                <label>Enter your account's private key:
-                  <input type="text" value={key} onChange={(e) => {setKey(e.target.value)}}/>
-                </label>
+              <Form onSubmit={handleSubmit}>
+                <div className="form-group">
                 <label> Current Chain ID: {chainId}</label>
-                <label> Submit:
-                  <input type="button" onClick={handleSubmit}/>
+                </div>
+                <div className="form-group">
+                <label>Enter your account address:
+                  <Input type="text" value={address} onChange={(e) => {setAddress(e.target.value)}}/>
                 </label>
+                </div>
+                <div className="form-group">
+                <label>Enter your account's private key:
+                  <Input type="text" value={key} onChange={(e) => {setKey(e.target.value)}}/>
+                </label>
+                </div>
+                <div className="form-group">
+                <label>Remember me?
+                  <Input type="checkbox" checked={remember} onChange={() => {setRemember(!remember)}} />
+                </label>
+                </div>
+                <Button type="button" onClick={handleSubmit}>Submit</Button>
                 <p>{playerStatus < 0 ? "There was an error with your account info. Please re-enter your information" : ""}</p>
-              </form>
-              
-
-
-
-              
-              
-              
-              
+              </Form>              
             }
-      
       </header>
     </div>
-    // </MetamaskStateProvider>
   );
 
   async function handleSubmit() {
     let y: Yahtzee = new Yahtzee(address, key, state, setState);
     await y.setup();
+    if (remember) {
+      localStorage.setItem('address', address);
+      localStorage.setItem('privateKey', key);
+    } else {
+      localStorage.clear();
+    }
     setYahtzee(y)
   }
 
   async function getChainId() {
     setChainId(await Yahtzee.getChainId());
+    let localAdd = localStorage.getItem('address');
+    let localKey = localStorage.getItem('privateKey');
+    if (localAdd && localKey)  {
+      setAddress(localAdd);
+      setKey(localKey);
+      setRemember(true);
+    }
   }
+
+
+
+
+  
+
+
+
 }
+
+
+
+
+
+
+
 
 export default App;

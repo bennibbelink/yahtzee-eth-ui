@@ -1,13 +1,14 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import { DiceWrapper, DieWrapper } from './Dice.styled';
 import { State } from '../../Types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faDiceOne, faDiceTwo, faDiceThree, 
    faDiceFour, faDiceFive, faDiceSix} from '@fortawesome/free-solid-svg-icons'
+import Yahtzee from '../../Services/API';
 
 
 interface DiceProps {
-   state: State
+   yahtzee: Yahtzee
    selected: boolean[]
    setSelected: React.Dispatch<React.SetStateAction<boolean[]>>
 }
@@ -16,9 +17,19 @@ const Dice: FC<DiceProps> = (props: DiceProps) => {
    
    return (
       <DiceWrapper>
-         { props.state.dice.map((d, i) => (
-            <div key={i} onClick={() => onclick(i)}>
-               <Die value={d} selected={props.selected[i]}/>
+         { props.yahtzee.gameState.dice.map((d, i) => (
+            <div key={i} onClick={() => onclick(i)}>               
+               <DieWrapper>
+                  <FontAwesomeIcon icon={
+                        d == 1 ? faDiceOne : 
+                        d == 2 ? faDiceTwo : 
+                        d == 3 ? faDiceThree :
+                        d == 4 ? faDiceFour :
+                        d == 5 ? faDiceFive : 
+                        d == 6 ? faDiceSix : 
+                        faDiceOne
+                     } size={'2xl'} style={props.selected[i] ? {} : {'border': 'solid gray 2px'}}></FontAwesomeIcon>
+               </DieWrapper>
             </div>
             ))
          }
@@ -36,33 +47,5 @@ const Dice: FC<DiceProps> = (props: DiceProps) => {
 }
 
 
-interface DieProps {
-   value: number
-   selected: boolean
-}
-const Die: FC<DieProps> = (props: DieProps) => {
-   let icon = null;
-   switch(props.value) {
-      case 1:
-         icon = faDiceOne; break;
-      case 2:
-         icon = faDiceTwo; break;
-      case 3:
-         icon = faDiceThree; break;
-      case 4:
-         icon = faDiceFour; break;
-      case 5:
-         icon = faDiceFive; break;
-      case 6:
-         icon = faDiceSix; break;
-      default:
-         icon = faDiceOne; break;
-   }
-   return (
-      <DieWrapper>
-            <FontAwesomeIcon icon={icon} size={'2xl'} style={props.selected ? {} : {'border': 'solid gray 2px'}}></FontAwesomeIcon>
-      </DieWrapper>
-   );
-}
 
 export default Dice;

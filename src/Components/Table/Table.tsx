@@ -2,12 +2,18 @@ import React, { useState, FC } from 'react';
 import {useTable, Column} from "react-table"
 import { TDWrapper, THWrapper, THeadWrapper, TableWrapper } from './Table.styled';
 import Yahtzee from '../../Services/API';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
+import { Tooltip } from 'react-bootstrap';
 
 interface TableProps {
     columns: Column[]
     data: Row[]
     selected: boolean[]
     yahtzee: Yahtzee
+}
+
+interface HeaderProps {
+  value: string
 }
 
 interface Row {
@@ -24,7 +30,17 @@ const Table: FC<TableProps> = (props: TableProps) => {
     headerGroups,
     rows,
     prepareRow,
-  } = useTable({columns: props.columns, data: props.data})
+  } = useTable({columns: props.columns, data: props.data});
+
+  
+  const [showP1, setShowP1] = useState<boolean>(false);
+  const [showP2, setShowP2] = useState<boolean>(false);
+
+  const renderTooltip = (col: number) => (
+    <Tooltip {...props} style={{'color': 'white', 'fontSize': '60px'}}>
+      {col === 1 ? props.yahtzee.gameState.player1 : col === 2 ? props.yahtzee.gameState.player2 : ""}
+    </Tooltip>
+  )
 
   return (
     <TableWrapper {...getTableProps()}>
@@ -33,12 +49,20 @@ const Table: FC<TableProps> = (props: TableProps) => {
           headerGroups.map(headerGroup => (
               <tr {...headerGroup.getHeaderGroupProps()}>
                 {
-                  headerGroup.headers.map( column => (
-                    <THWrapper {...column.getHeaderProps()}>
-                      {
-                        column.render('Header')
-                      }
-                    </THWrapper>
+                  headerGroup.headers.map( (column, i) => (
+                    <OverlayTrigger overlay={renderTooltip(i)} placement='top'>
+                      <THWrapper onMouseEnter={() => {i === 1 ? setShowP1(true) : i === 2 && setShowP2(true)}}
+                                onMouseLeave={() => {i === 1 ? setShowP1(false) : i === 2 && setShowP2(false)}}
+                      {...column.getHeaderProps()} style={
+                      (props.yahtzee.currentAccount === props.yahtzee.gameState.player1 && 1 === i) || 
+                      (props.yahtzee.currentAccount === props.yahtzee.gameState.player2 && 2 === i)
+                      ? {color : 'white'} : {color: 'gray'}
+                        }>
+                          {column.render('Header')}
+                          <p>{(props.yahtzee.gameState.turn === props.yahtzee.gameState.player1 && 1 === i) || 
+                      (props.yahtzee.gameState.turn === props.yahtzee.gameState.player2 && 2 === i) ? "*" : ""}</p>
+                      </THWrapper>
+                    </OverlayTrigger>
                   ))
                 }
               </tr>
@@ -53,7 +77,7 @@ const Table: FC<TableProps> = (props: TableProps) => {
               <tr {...row.getRowProps()}>
                 { // loop over the rows cells 
                   row.cells.map((cell, cellind) => (
-                    <TDWrapper style={usedCat(rowind, cellind) ? {color : 'red'} : {color: 'green'}} onClick={() => onclick(rowind, cellind)} {...cell.getCellProps()}>
+                    <TDWrapper style={usedCat(rowind, cellind) ? {color : 'white'} : {color: 'gray'}} onClick={() => onclick(rowind, cellind)} {...cell.getCellProps()}>
                       {cell.render('Cell')}
                     </TDWrapper>
                   ))
@@ -70,9 +94,9 @@ const Table: FC<TableProps> = (props: TableProps) => {
   );
 
   function usedCat(category: number, player: number): boolean {
-    if (player == 1) {
+    if (player === 1) {
       return props.yahtzee.gameState.player1_scores[category] >= 0;
-    } else if (player == 2) {
+    } else if (player === 2) {
       return props.yahtzee.gameState.player2_scores[category] >= 0;
     } else {
       return false;
@@ -81,9 +105,11 @@ const Table: FC<TableProps> = (props: TableProps) => {
 
   async function onclick(rowind: number, cellind: number) {
     if (cellind > 0) {
-      let promise = await props.yahtzee.bankRoll(rowind);
-      console.log("banking roll with dice: ")
-      console.log(rowind)
+      props.yahtzee.bankRoll(rowind).then(result => {
+        console.log(result)
+      }).catch(err => {
+        console.log(err)
+      });
     }
   }
 }

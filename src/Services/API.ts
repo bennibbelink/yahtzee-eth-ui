@@ -7,7 +7,7 @@ export default class Yahtzee {
     static emptyAdd = "0x0000000000000000000000000000000000000000";
     contractAddress = "0x9D7d2d175C27aa5D9BF03bf4cB3E1B2482D77Dcd";
     instance: any
-    static ethereum: any = new Web3(Web3.givenProvider || 'ws://127.0.0.1:8546').eth;
+    static ethereum: any = new Web3(Web3.givenProvider || 'http://127.0.0.1:8546').eth;
     currentAccount: string = Yahtzee.emptyAdd;
     key: string = Yahtzee.emptyAdd;
     chainId: any;
@@ -37,11 +37,15 @@ export default class Yahtzee {
         const networkData = Yaht.networks[await Yahtzee.getChainId()];
         this.instance = new Yahtzee.ethereum.Contract(Yaht.abi, networkData.address);
 
-        let options = {};
+        let options = {fromBlock: 'finalized'};
         this.instance.events.Turn(options).on('data', (ev: any) => this.turnHandler(ev));
-        this.instance.events.DiceState(options).on('data', (ev:  any) => this.diceStateHandler(ev));
-        this.instance.events.ScoreState(options).on('data', (ev:any) => this.scoreStateHandler(ev));
+        this.instance.events.DiceState(options).on('data', (ev: any) => this.diceStateHandler(ev));
+        this.instance.events.ScoreState(options).on('data', (ev: any) => this.scoreStateHandler(ev));
         this.instance.events.GameOver(options).on('data', (ev: any) => this.gameOverHandler(ev));
+
+        Yahtzee.ethereum.subscribe('logs', {address: this.instance.options.address}).on('data', (ev: any) => {
+            console.log(ev)
+        })
 
         await this.dumpScore();
         await this.dumpTurn();
@@ -95,51 +99,83 @@ export default class Yahtzee {
         await this.sendSignedTransaction(query);
     }
 
-    async rollDice(di: boolean[]) {
+    async rollDice(di: boolean[]): Promise<string> {
         console.log("sending roll_dice")
-        const query = this.instance.methods.roll_dice(di[0], di[1], di[2], di[3], di[4]);
-        await this.sendSignedTransaction(query);
+        return new Promise<string>((resolve, reject) => {
+            const query = this.instance.methods.roll_dice(di[0], di[1], di[2], di[3], di[4]);
+            this.sendSignedTransaction(query).then((result) => {
+                console.log(result)
+                resolve(result);
+            })
+            .catch((err: Error) => {
+                console.log(err)
+                reject(this.parseError(err));                
+            });
+        });
     }
 
-    async bankRoll(category: number) {
+    async bankRoll(category: number): Promise<string> {
         console.log("sending bank_roll")
-        const query = this.instance.methods.bank_roll(category);
-        await this.sendSignedTransaction(query);
+        return new Promise<string>((resolve, reject) => {
+            const query = this.instance.methods.bank_roll(category);
+            this.sendSignedTransaction(query).then(result => {
+                resolve(result);
+            }).catch((err: Error) => {
+                reject(this.parseError(err));
+            });
+        });
     }
 
-    async joinGame() {
+    async joinGame(): Promise<string> {
         console.log('sending join_game');
-        const query = this.instance.methods.join_game();
-        let res = await this.sendSignedTransaction(query);
-        console.log(res)
+        return new Promise<string>((resolve, reject) => {
+            const query = this.instance.methods.join_game();
+            this.sendSignedTransaction(query).then(result => {
+                resolve(result);
+            }).catch((err: Error) => {
+                reject(this.parseError(err));
+            });
+        });
     }
 
     async sendSignedTransaction(query: any): Promise<any> {
         const encodedABI = query.encodeABI();
-        console.log('in sendsignedtransaction')
-        const nonce = await Yahtzee.ethereum.getTransactionCount(this.currentAccount, 'latest');
-        console.log(`nonce is ${nonce}`)
         const signedTx = await Yahtzee.ethereum.accounts.signTransaction(
-        {
-            data: encodedABI,
-            from: this.currentAccount,
-            gas: 3000000,
-            gasPrice: 2000000000,
-            to: this.instance.options.address,
-            nonce: nonce
-        },
-        this.key,
-        false,
+            {
+                data: encodedABI,
+                from: this.currentAccount,
+                gas: 3000000,
+                gasPrice: 2000000000,
+                to: this.instance.options.address,
+            },
+            this.key,
+            false,
         );
-        let res = await Yahtzee.ethereum.sendSignedTransaction(signedTx.rawTransaction);
-        console.log(res)
-        return res;
+        return Yahtzee.ethereum.sendSignedTransaction(signedTx.rawTransaction);
     }
 
 
     static async getChainId(): Promise<string> {
         let id = await Yahtzee.ethereum.getChainId();
         return id;
+    }
+
+    parseError(err: Error): string {
+        let lines = err.message.split('\n')
+        lines.splice(0,1)
+        let combined = lines.join('\n');
+        try {
+            let obj: {data: {reason: string}} = JSON.parse(combined);
+            if (obj.data.reason)
+                return obj.data.reason;
+        }
+        catch {
+            Yahtzee.ethereum = new Web3(Web3.givenProvider || 'ws://127.0.0.1:8546').eth;
+            return "wait a few seconds for the network to update"
+        }
+        return "something else"
+        
+        
     }
 
 }

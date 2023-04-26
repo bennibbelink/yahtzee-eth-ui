@@ -4,6 +4,7 @@ import {Column, Accessor} from 'react-table'
 import {State} from '../../Types'
 import Table from '../Table/Table'
 import Yahtzee from '../../Services/API';
+import truncateEthAddress from 'truncate-eth-address'
 
 interface ScoreboardProps {
    yahtzee: Yahtzee
@@ -23,14 +24,14 @@ const Scoreboard: FC<ScoreboardProps> = (props: ScoreboardProps) => {
    for (let i = 0; i < categories.length; i++) {
       data[i] = {
          'category': categories[i], 
-         'player1':  props.yahtzee.gameState.player1_scores[i],
-         'player2': props.yahtzee.gameState.player2_scores[i]
+         'player1':  props.yahtzee.gameState.player1_scores[i] == -1 ? 0 : props.yahtzee.gameState.player1_scores[i],
+         'player2': props.yahtzee.gameState.player2_scores[i] == -1 ? 0 : props.yahtzee.gameState.player2_scores[i]
       }
    }
    let columns: Column[] = [
       { Header: 'Category', accessor: 'category' },
-      { Header: `Player 1: ${props.yahtzee.gameState.player1}`, accessor: 'player1' },
-      { Header: `Player 2: ${props.yahtzee.gameState.player2}`, accessor: 'player2' }
+      { Header: `${truncateEthAddress(props.yahtzee.gameState.player1)}`, accessor: 'player1' },
+      { Header: `${truncateEthAddress(props.yahtzee.gameState.player2)}`, accessor: 'player2' }
    ];
 
 
