@@ -22,7 +22,6 @@ export const Button = styled.button`
   overflow: hidden;
   cursor: pointer;
 
-
   &:after {
     content: "";
     background: white;

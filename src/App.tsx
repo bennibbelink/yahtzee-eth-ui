@@ -81,7 +81,7 @@ function App() {
                 playerStatus === NOT_IN_STARTED_GAME ?  <div>Game in progress, please wait for the next game to start.</div> :
                 playerStatus === IN_GAME_FIRST ? <div> Waiting for another player to join... </div> : 
                 playerStatus === IN_STARTED_GAME ? 
-                    <div>
+                    <div style={{display: 'flex', flexDirection: 'column', justifyItems: 'center'}}>
                       <Scoreboard yahtzee={yahtzee} selected={selected}/>
                       <Dice yahtzee={yahtzee} selected={selected} setSelected={setSelected}/>
                       <Actions yahtzee={yahtzee} selected={selected}></Actions>

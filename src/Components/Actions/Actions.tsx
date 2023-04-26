@@ -12,9 +12,15 @@ const Actions: FC<ActionsProps> = (props: ActionsProps) => {
 
    const [message, setMessage] = useState<string>("")
 
+   function disableButton(): boolean {
+      if (props.yahtzee.gameState.turn !== props.yahtzee.currentAccount) return true
+      if (props.yahtzee.gameState.rollsLeft == 0) return true
+      return false   
+   }
+
    return(
       <ActionsWrapper>
-         <Button onClick={handleClick}>Roll Dice</Button>
+         <Button onClick={handleClick} disabled={disableButton()}>Roll Dice</Button>
          <p>Rolls left: {props.yahtzee.gameState.rollsLeft}</p>
          <p style={{'height': '100px'}}> {message? message.toString() : ""}</p>
       </ActionsWrapper>

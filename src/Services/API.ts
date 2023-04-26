@@ -7,7 +7,7 @@ export default class Yahtzee {
     static emptyAdd = "0x0000000000000000000000000000000000000000";
     contractAddress = "0x9D7d2d175C27aa5D9BF03bf4cB3E1B2482D77Dcd";
     instance: any
-    static ethereum: any = new Web3(Web3.givenProvider || 'http://127.0.0.1:8546').eth;
+    static ethereum: any = new Web3('ws://127.0.0.1:8545').eth;
     currentAccount: string = Yahtzee.emptyAdd;
     key: string = Yahtzee.emptyAdd;
     chainId: any;
@@ -55,6 +55,8 @@ export default class Yahtzee {
     diceStateHandler(ev: any) {
         console.log("DiceState event recieved")
         this.gameState.dice = ev.returnValues.dice;
+        console.log(ev.returnValues.rollsLeft)
+        this.gameState.rollsLeft = ev.returnValues.rollsLeft
         let shallow = Object.assign({}, this.gameState);
         this.setState(shallow);
     }
@@ -67,7 +69,6 @@ export default class Yahtzee {
             this.gameState.player1_scores[i] = parseInt(ev.returnValues.player_scores[i][0]);
             this.gameState.player2_scores[i] = parseInt(ev.returnValues.player_scores[i][1]);
         }
-        console.log("SCORESTATE UPDATED")
         console.log(this.gameState)
         let shallow = Object.assign({}, this.gameState);
         this.setState(shallow);
@@ -170,7 +171,7 @@ export default class Yahtzee {
                 return obj.data.reason;
         }
         catch {
-            Yahtzee.ethereum = new Web3(Web3.givenProvider || 'ws://127.0.0.1:8546').eth;
+            // Yahtzee.ethereum = new Web3(Web3.givenProvider || 'ws://127.0.0.1:8546').eth;
             return "wait a few seconds for the network to update"
         }
         return "something else"
