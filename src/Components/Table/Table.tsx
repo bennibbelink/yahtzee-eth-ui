@@ -42,16 +42,6 @@ const Table: FC<TableProps> = (props: TableProps) => {
     </Tooltip>
   )
 
-  const popover = (
-    <Popover id="popover-basic">
-      <Popover.Header as="h3">Popover right</Popover.Header>
-      <Popover.Body>
-        And here's some <strong>amazing</strong> content. It's very engaging.
-        right?
-      </Popover.Body>
-    </Popover>
-  );
-
   return (
     <TableWrapper {...getTableProps()}>
       <THeadWrapper>
@@ -87,9 +77,6 @@ const Table: FC<TableProps> = (props: TableProps) => {
                 { // loop over the rows cells 
                   row.cells.map((cell, cellind) => (
                       <TDWrapper style={usedCat(rowind, cellind) ? {color : 'white'} : {color: 'gray'}} onClick={() => onclick(rowind, cellind)} {...cell.getCellProps()}>
-                      <Overlay target={target.current} show={errorMessage === ""}>
-                        {popover}
-                      </Overlay>
                         {cell.render('Cell')}
                       </TDWrapper>
                   ))

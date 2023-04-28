@@ -23,8 +23,16 @@ const Scoreboard: FC<ScoreboardProps> = (props: ScoreboardProps) => {
    for (let i = 0; i < categories.length; i++) {
       data[i] = {
          'category': categories[i], 
-         'player1':  props.yahtzee.gameState.player1_scores[i] == -1 ? 0 : props.yahtzee.gameState.player1_scores[i],
-         'player2': props.yahtzee.gameState.player2_scores[i] == -1 ? 0 : props.yahtzee.gameState.player2_scores[i]
+         'player1':  props.yahtzee.gameState.player1_scores[i] == -1 ? (i == 6 ? `${props.yahtzee.gameState.player1_scores.slice(0, 6).reduce((partialSum, a) => {
+            if (a >= 0)
+               return partialSum + a
+            else return partialSum;
+         }, 0)} / 63` : 0) : props.yahtzee.gameState.player1_scores[i],
+         'player2': props.yahtzee.gameState.player2_scores[i] == -1 ? (i == 6 ? `${props.yahtzee.gameState.player2_scores.slice(0, 6).reduce((partialSum, a) => {
+            if (a >= 0)
+               return partialSum + a
+            else return partialSum;
+         }, 0)} / 63` : 0) : props.yahtzee.gameState.player2_scores[i]
       }
    }
    let columns: Column[] = [
