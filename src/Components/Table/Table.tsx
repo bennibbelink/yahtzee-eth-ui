@@ -1,14 +1,13 @@
-import React, { useState, FC } from 'react';
+import React, { useState, FC, useRef } from 'react';
 import {useTable, Column} from "react-table"
 import { TDWrapper, THWrapper, THeadWrapper, TableWrapper } from './Table.styled';
 import Yahtzee from '../../Services/API';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
-import { Tooltip } from 'react-bootstrap';
+import { Tooltip, Popover, Overlay } from 'react-bootstrap';
 
 interface TableProps {
     columns: Column[]
     data: Row[]
-    selected: boolean[]
     yahtzee: Yahtzee
 }
 
@@ -32,15 +31,26 @@ const Table: FC<TableProps> = (props: TableProps) => {
     prepareRow,
   } = useTable({columns: props.columns, data: props.data});
 
-  
-  const [showP1, setShowP1] = useState<boolean>(false);
-  const [showP2, setShowP2] = useState<boolean>(false);
+
+  // for error popups
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const target = useRef(null);
 
   const renderTooltip = (col: number) => (
     <Tooltip {...props} style={{'color': 'white', 'fontSize': '60px'}}>
       {col === 1 ? props.yahtzee.gameState.player1 : col === 2 ? props.yahtzee.gameState.player2 : ""}
     </Tooltip>
   )
+
+  const popover = (
+    <Popover id="popover-basic">
+      <Popover.Header as="h3">Popover right</Popover.Header>
+      <Popover.Body>
+        And here's some <strong>amazing</strong> content. It's very engaging.
+        right?
+      </Popover.Body>
+    </Popover>
+  );
 
   return (
     <TableWrapper {...getTableProps()}>
@@ -51,8 +61,7 @@ const Table: FC<TableProps> = (props: TableProps) => {
                 {
                   headerGroup.headers.map( (column, i) => (
                     <OverlayTrigger overlay={renderTooltip(i)} placement='top'>
-                      <THWrapper onMouseEnter={() => {i === 1 ? setShowP1(true) : i === 2 && setShowP2(true)}}
-                                onMouseLeave={() => {i === 1 ? setShowP1(false) : i === 2 && setShowP2(false)}}
+                      <THWrapper 
                       {...column.getHeaderProps()} style={
                       (props.yahtzee.currentAccount === props.yahtzee.gameState.player1 && 1 === i) || 
                       (props.yahtzee.currentAccount === props.yahtzee.gameState.player2 && 2 === i)
@@ -77,9 +86,12 @@ const Table: FC<TableProps> = (props: TableProps) => {
               <tr {...row.getRowProps()}>
                 { // loop over the rows cells 
                   row.cells.map((cell, cellind) => (
-                    <TDWrapper style={usedCat(rowind, cellind) ? {color : 'white'} : {color: 'gray'}} onClick={() => onclick(rowind, cellind)} {...cell.getCellProps()}>
-                      {cell.render('Cell')}
-                    </TDWrapper>
+                      <TDWrapper style={usedCat(rowind, cellind) ? {color : 'white'} : {color: 'gray'}} onClick={() => onclick(rowind, cellind)} {...cell.getCellProps()}>
+                      <Overlay target={target.current} show={errorMessage === ""}>
+                        {popover}
+                      </Overlay>
+                        {cell.render('Cell')}
+                      </TDWrapper>
                   ))
                 }
               </tr> 
@@ -104,10 +116,18 @@ const Table: FC<TableProps> = (props: TableProps) => {
   }
 
   async function onclick(rowind: number, cellind: number) {
-    if (cellind > 0) {
+    let myCol = 0;
+    if (props.yahtzee.currentAccount == props.yahtzee.gameState.player1) myCol = 1;
+    if (props.yahtzee.currentAccount == props.yahtzee.gameState.player2) myCol = 2;
+    
+    if (cellind == myCol) {
       props.yahtzee.bankRoll(rowind).then(result => {
         console.log(result)
       }).catch(err => {
+        setErrorMessage(err);
+        setTimeout(() => {
+          setErrorMessage("");
+        }, 2000);
         console.log(err)
       });
     }

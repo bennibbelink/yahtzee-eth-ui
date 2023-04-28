@@ -17,19 +17,23 @@ export default class Yahtzee {
         player2: Yahtzee.emptyAdd,
         rollsLeft: 3,
         dice: Array(5).fill(1),
+        selected: Array(5).fill(false),
         turn: Yahtzee.emptyAdd,
         player1_scores: Array(15).fill(-1),
         player2_scores: Array(15).fill(-1)
     };
+    setState: React.Dispatch<React.SetStateAction<State>>;
+    rolling: boolean;
+    setRolling: React.Dispatch<React.SetStateAction<boolean>>;
 
-    setState;
 
-
-    constructor(address: string, privateKey: string, state: State, setState: React.Dispatch<React.SetStateAction<State>>) {
+    constructor(address: string, privateKey: string, state: State, setState: React.Dispatch<React.SetStateAction<State>>, rolling: boolean, setRolling: React.Dispatch<React.SetStateAction<boolean>>) {
         this.currentAccount = address;
         this.key = privateKey;
         this.gameState = state;
         this.setState = setState;
+        this.rolling = rolling;
+        this.setRolling = setRolling;
     }
 
     async setup() {        
@@ -42,6 +46,7 @@ export default class Yahtzee {
         this.instance.events.DiceState(options).on('data', (ev: any) => this.diceStateHandler(ev));
         this.instance.events.ScoreState(options).on('data', (ev: any) => this.scoreStateHandler(ev));
         this.instance.events.GameOver(options).on('data', (ev: any) => this.gameOverHandler(ev));
+        this.instance.events.Selected(options).on('data', (ev: any) => this.selectedHandler(ev));
 
         Yahtzee.ethereum.subscribe('logs', {address: this.instance.options.address}).on('data', (ev: any) => {
             console.log(ev)
@@ -54,11 +59,14 @@ export default class Yahtzee {
 
     diceStateHandler(ev: any) {
         console.log("DiceState event recieved")
-        this.gameState.dice = ev.returnValues.dice;
-        console.log(ev.returnValues.rollsLeft)
-        this.gameState.rollsLeft = ev.returnValues.rollsLeft
-        let shallow = Object.assign({}, this.gameState);
-        this.setState(shallow);
+        this.setRolling(true);
+        setTimeout(() => {
+            this.setRolling(false);
+            this.gameState.dice = ev.returnValues.dice;
+            this.gameState.rollsLeft = ev.returnValues.rollsLeft
+            let shallow = Object.assign({}, this.gameState);
+            this.setState(shallow);
+        }, 1000); 
     }
 
     scoreStateHandler(ev: any) {
@@ -85,6 +93,13 @@ export default class Yahtzee {
         this.setState(shallow);
     }
 
+    selectedHandler(ev: any) {
+        console.log('Selected event recieved');
+        this.gameState.selected = ev.returnValues.selected;
+        let shallow = Object.assign({}, this.gameState);
+        this.setState(shallow);
+    }
+
     async dumpScore() {
         const query = this.instance.methods.score_dump();
         await this.sendSignedTransaction(query);
@@ -100,16 +115,26 @@ export default class Yahtzee {
         await this.sendSignedTransaction(query);
     }
 
-    async rollDice(di: boolean[]): Promise<string> {
+    async rollDice(): Promise<string> {
         console.log("sending roll_dice")
         return new Promise<string>((resolve, reject) => {
-            const query = this.instance.methods.roll_dice(di[0], di[1], di[2], di[3], di[4]);
+            const query = this.instance.methods.roll_dice();
             this.sendSignedTransaction(query).then((result) => {
-                console.log(result)
                 resolve(result);
             })
             .catch((err: Error) => {
-                console.log(err)
+                reject(this.parseError(err));                
+            });
+        });
+    }
+
+    async toggleSelectDie(ind: number): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            const query = this.instance.methods.toggle_select_die(ind);
+            this.sendSignedTransaction(query).then((result) => {
+                resolve(result);
+            })
+            .catch((err: Error) => {
                 reject(this.parseError(err));                
             });
         });
@@ -162,6 +187,7 @@ export default class Yahtzee {
     }
 
     parseError(err: Error): string {
+        console.log(err)
         let lines = err.message.split('\n')
         lines.splice(0,1)
         let combined = lines.join('\n');
@@ -170,11 +196,10 @@ export default class Yahtzee {
             if (obj.data.reason)
                 return obj.data.reason;
         }
-        catch {
-            // Yahtzee.ethereum = new Web3(Web3.givenProvider || 'ws://127.0.0.1:8546').eth;
-            return "wait a few seconds for the network to update"
+        catch (err) {
+            console.log(err)
         }
-        return "something else"
+        return "error?"
         
         
     }

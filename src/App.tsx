@@ -16,6 +16,7 @@ function App() {
     player2: Yahtzee.emptyAdd,
     rollsLeft: 3,
     dice: Array(5).fill(1),
+    selected: Array(5).fill(true),
     turn: Yahtzee.emptyAdd,
     player1_scores: Array(15).fill(-1),
     player2_scores: Array(15).fill(-1)
@@ -23,7 +24,8 @@ function App() {
   const [yahtzee, setYahtzee] = useState<Yahtzee>();
   const [state, setState] = useState<State>(init_state);
 
-  const [selected, setSelected] = useState<boolean[]>([true, true, true, true, true]);
+  // const [selected, setSelected] = useState<boolean[]>([true, true, true, true, true]);
+  const [rolling, setRolling] = useState<boolean>(false);
 
   // local state vars
   const [address, setAddress] = useState<string>("");
@@ -43,7 +45,7 @@ function App() {
 
   useEffect(() => {
     if (chainId === "")
-      getChainId()
+      getChainId();
     if (yahtzee) {
       console.log(yahtzee.gameState);
       setPlayerStatus(getPlayerStatus());
@@ -82,9 +84,9 @@ function App() {
                 playerStatus === IN_GAME_FIRST ? <div> Waiting for another player to join... </div> : 
                 playerStatus === IN_STARTED_GAME ? 
                     <div style={{display: 'flex', flexDirection: 'column', justifyItems: 'center'}}>
-                      <Scoreboard yahtzee={yahtzee} selected={selected}/>
-                      <Dice yahtzee={yahtzee} selected={selected} setSelected={setSelected}/>
-                      <Actions yahtzee={yahtzee} selected={selected}></Actions>
+                      <Scoreboard yahtzee={yahtzee}/>
+                      <Dice yahtzee={yahtzee} rolling={rolling}/>
+                      <Actions yahtzee={yahtzee}></Actions>
                     </div> :
                 playerStatus === NOT_IN_GAME ?
                     <button onClick={() => {yahtzee.joinGame()}}>Join game</button> : null
@@ -120,7 +122,7 @@ function App() {
   );
 
   async function handleSubmit() {
-    let y: Yahtzee = new Yahtzee(address, key, state, setState);
+    let y: Yahtzee = new Yahtzee(address, key, state, setState, rolling, setRolling);
     await y.setup();
     if (remember) {
       localStorage.setItem('address', address);

@@ -8,7 +8,6 @@ import truncateEthAddress from 'truncate-eth-address'
 
 interface ScoreboardProps {
    yahtzee: Yahtzee
-   selected: boolean[]
 }
 
 const Scoreboard: FC<ScoreboardProps> = (props: ScoreboardProps) => {
@@ -38,7 +37,7 @@ const Scoreboard: FC<ScoreboardProps> = (props: ScoreboardProps) => {
    return (
 
       <ScoreboardWrapper>
-         <Table yahtzee={props.yahtzee} columns={columns} data={data} selected={props.selected}/>
+         <Table yahtzee={props.yahtzee} columns={columns} data={data}/>
       </ScoreboardWrapper>
    );
 
