@@ -1,16 +1,19 @@
 
 import Web3 from 'web3'
-import { State } from '../Types';
+import { GameOver, State } from '../Types';
 
 export default class Yahtzee {
 
     static emptyAdd = "0x0000000000000000000000000000000000000000";
     contractAddress = "0x9D7d2d175C27aa5D9BF03bf4cB3E1B2482D77Dcd";
     instance: any
-    static ethereum: any = new Web3('ws://127.0.0.1:8545').eth;
+    static web3: any = new Web3('ws://127.0.0.1:8545')
+    static ethereum: any = Yahtzee.web3.eth;
     currentAccount: string = Yahtzee.emptyAdd;
     key: string = Yahtzee.emptyAdd;
     chainId: any;
+
+    sendCount: number = 0
 
     gameState: State  = {
         player1: Yahtzee.emptyAdd,
@@ -25,15 +28,20 @@ export default class Yahtzee {
     setState: React.Dispatch<React.SetStateAction<State>>;
     rolling: boolean;
     setRolling: React.Dispatch<React.SetStateAction<boolean>>;
+    setGameOver: React.Dispatch<React.SetStateAction<GameOver | null>>;
 
 
-    constructor(address: string, privateKey: string, state: State, setState: React.Dispatch<React.SetStateAction<State>>, rolling: boolean, setRolling: React.Dispatch<React.SetStateAction<boolean>>) {
+    constructor(address: string, privateKey: string, state: State, setState: React.Dispatch<React.SetStateAction<State>>, 
+        rolling: boolean, setRolling: React.Dispatch<React.SetStateAction<boolean>>,
+        setGameOver: React.Dispatch<React.SetStateAction<GameOver | null>>) 
+        {
         this.currentAccount = address;
         this.key = privateKey;
         this.gameState = state;
         this.setState = setState;
         this.rolling = rolling;
         this.setRolling = setRolling;
+        this.setGameOver = setGameOver;
     }
 
     async setup() {        
@@ -66,7 +74,7 @@ export default class Yahtzee {
             this.gameState.rollsLeft = ev.returnValues.rollsLeft
             let shallow = Object.assign({}, this.gameState);
             this.setState(shallow);
-        }, 1000); 
+        }, 750); 
     }
 
     scoreStateHandler(ev: any) {
@@ -83,7 +91,14 @@ export default class Yahtzee {
     }
 
     gameOverHandler(ev: any) {
-        console.log('GameOver event recieved');
+        console.log('GameOver event recieved')
+        let go: GameOver = {
+            winner: ev.returnValues.winner,
+            loser: ev.returnValues.loser,
+            winning_score: ev.returnValues.winning_score,
+            losing_score: ev.returnValues.losing_score
+        };
+        this.setGameOver(go);
     }
 
     turnHandler(ev: any) {
@@ -165,13 +180,15 @@ export default class Yahtzee {
     }
 
     async sendSignedTransaction(query: any): Promise<any> {
+        console.log(this.sendCount);
+        this.sendCount += 1;
         const encodedABI = query.encodeABI();
         const signedTx = await Yahtzee.ethereum.accounts.signTransaction(
             {
                 data: encodedABI,
                 from: this.currentAccount,
                 gas: 3000000,
-                gasPrice: 2000000000,
+                gasPrice: 20000000000,
                 to: this.instance.options.address,
             },
             this.key,

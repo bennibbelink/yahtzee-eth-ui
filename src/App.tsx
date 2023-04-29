@@ -1,12 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import './App.css';
-import {Form, Input} from './App.styled'
+import {StyledButton, StyledForm, StyledInput, StyledLabel} from './App.styled'
 import Scoreboard from './Components/Scoreboard/Scoreboard';
 import Dice from './Components/Dice/Dice';
 import Actions from './Components/Actions/Actions';
 import Yahtzee from './Services/API';
-import { State } from './Types';
-import { Button } from './Components/Actions/Actions.styled';
+import { GameOver, State } from './Types';
 
 
 
@@ -41,6 +40,10 @@ function App() {
   const IN_GAME_FIRST = 1;
   const IN_STARTED_GAME = 2;
   const NOT_IN_STARTED_GAME = 3;
+
+
+
+  const [gameOver, setGameOver] = useState<GameOver | null>(null);
 
 
   useEffect(() => {
@@ -78,51 +81,62 @@ function App() {
     <div className="App">
       <header className="App-header">
             <h1>YahtzeEth</h1>
-            { 
+      </header>
+      <body className="App-body">
+      { 
               yahtzee && playerStatus >= 0 ? (
                 playerStatus === NOT_IN_STARTED_GAME ?  <div>Game in progress, please wait for the next game to start.</div> :
                 playerStatus === IN_GAME_FIRST ? <div> Waiting for another player to join... </div> : 
-                playerStatus === IN_STARTED_GAME ? 
+                playerStatus === IN_STARTED_GAME ? (
+                gameOver ? 
+                <StyledForm>
+                  <StyledLabel>{gameOver.winner == yahtzee.currentAccount ? "You won!!!" : "You lost!!!"}</StyledLabel>
+                  <StyledLabel>{gameOver.winner == yahtzee.gameState.player1 ? gameOver.winning_score : gameOver.losing_score} 
+                  - {gameOver.winner == yahtzee.gameState.player2 ? gameOver.winning_score : gameOver.losing_score}</StyledLabel>
+                  <StyledButton onClick={() => {
+                      yahtzee.joinGame();
+                      setGameOver(null);
+                    }}>Play again!</StyledButton>
+                </StyledForm> : 
                     <div style={{display: 'flex', flexDirection: 'column', justifyItems: 'center'}}>
                       <Scoreboard yahtzee={yahtzee}/>
                       <Dice yahtzee={yahtzee} rolling={rolling}/>
                       <Actions yahtzee={yahtzee}></Actions>
-                    </div> :
-                playerStatus === NOT_IN_GAME ?
-                    <button onClick={() => {yahtzee.joinGame()}}>Join game</button> : null
+                    </div> 
+                ) :
+                playerStatus === NOT_IN_GAME ? 
+                  <StyledButton onClick={() => {yahtzee.joinGame()}}>Join game</StyledButton> 
+                :
+                null
               )
 
               :
               
-              <Form onSubmit={handleSubmit}>
-                <div className="form-group">
-                <label> Current Chain ID: {chainId}</label>
-                </div>
-                <div className="form-group">
-                <label>Enter your account address:
-                  <Input type="text" value={address} onChange={(e) => {setAddress(e.target.value)}}/>
-                </label>
-                </div>
-                <div className="form-group">
-                <label>Enter your account's private key:
-                  <Input type="text" value={key} onChange={(e) => {setKey(e.target.value)}}/>
-                </label>
-                </div>
-                <div className="form-group">
-                <label>Remember me?
-                  <Input type="checkbox" checked={remember} onChange={() => {setRemember(!remember)}} />
-                </label>
-                </div>
-                <Button type="button" onClick={handleSubmit}>Submit</Button>
+              <StyledForm onSubmit={handleSubmit}>
+                <StyledLabel> Current Chain ID: {chainId}</StyledLabel>
+
+                <StyledLabel>Enter your account address
+                  <StyledInput type="text" value={address} onChange={(e: any) => {setAddress(e.target.value)}}/>
+                </StyledLabel>
+
+                <StyledLabel>Enter your account's private key
+                  <StyledInput type="text" value={key} onChange={(e: any) => {setKey(e.target.value)}}/>
+                </StyledLabel>
+
+                <StyledLabel>Remember me?
+                  <StyledInput type="checkbox" checked={remember} onChange={() => {setRemember(!remember)}} />
+                </StyledLabel>
+
+                <StyledButton type="button" onClick={handleSubmit}>Submit</StyledButton>
                 <p>{playerStatus < 0 ? "There was an error with your account info. Please re-enter your information" : ""}</p>
-              </Form>              
+              </StyledForm>              
             }
-      </header>
+      </body>
     </div>
   );
 
   async function handleSubmit() {
-    let y: Yahtzee = new Yahtzee(address, key, state, setState, rolling, setRolling);
+    let y: Yahtzee = new Yahtzee(address, key, state, setState, rolling, setRolling, setGameOver);
     await y.setup();
     if (remember) {
       localStorage.setItem('address', address);
@@ -143,21 +157,6 @@ function App() {
       setRemember(true);
     }
   }
-
-
-
-
-  
-
-
-
 }
-
-
-
-
-
-
-
 
 export default App;

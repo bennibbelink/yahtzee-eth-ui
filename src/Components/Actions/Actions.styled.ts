@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 export const ActionsWrapper = styled.div`
+
 `;
 
 
@@ -9,10 +10,10 @@ export const Button = styled.button`
   position: relative;
   background-color: palevioletred;
   border: none;
-  font-size: 50px;
-  margin: 30px;
+  font-size: 25px;
+  margin: 10px;
   color: #FFFFFF;
-  padding: 10px;
+  padding: 5px;
   padding-left: 20px;
   padding-right: 20px;
   text-align: center;

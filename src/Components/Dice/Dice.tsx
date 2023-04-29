@@ -1,6 +1,5 @@
-import React, { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { DiceWrapper, DieWrapper, RollingDieWrapper } from './Dice.styled';
-import { State } from '../../Types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faDiceOne, faDiceTwo, faDiceThree, 
    faDiceFour, faDiceFive, faDiceSix} from '@fortawesome/free-solid-svg-icons'
@@ -31,7 +30,7 @@ const Dice: FC<DiceProps> = (props: DiceProps) => {
                         d == 5 ? faDiceFive : 
                         d == 6 ? faDiceSix : 
                         faDiceOne
-                     } size={'3x'} style={props.yahtzee.gameState.selected[i] ? {} : {'color': 'gray'}}></FontAwesomeIcon>
+                     } size={'4x'} style={props.yahtzee.gameState.selected[i] ? {} : {'color': 'gray'}}></FontAwesomeIcon>
                   </RollingDieWrapper>
                   :
                   <DieWrapper>
@@ -43,7 +42,7 @@ const Dice: FC<DiceProps> = (props: DiceProps) => {
                            d == 5 ? faDiceFive : 
                            d == 6 ? faDiceSix : 
                            faDiceOne
-                        } size={'3x'} style={props.yahtzee.gameState.selected[i] ? {} : {'color': 'gray'}}></FontAwesomeIcon>
+                        } size={'4x'} style={props.yahtzee.gameState.selected[i] ? {} : {'color': 'gray'}}></FontAwesomeIcon>
                   </DieWrapper>
                }       
                
@@ -54,7 +53,7 @@ const Dice: FC<DiceProps> = (props: DiceProps) => {
    );
 
    function onclick(ind: number) {
-      if (props.yahtzee.gameState.turn == props.yahtzee.currentAccount) {
+      if (props.yahtzee.gameState.turn === props.yahtzee.currentAccount && props.yahtzee.gameState.rollsLeft < 3) {
          props.yahtzee.toggleSelectDie(ind);
       }
    }

@@ -8,3 +8,11 @@ export interface State {
     player1_scores: number[]
     player2_scores: number[]
 }
+
+export interface GameOver {
+    winner: string
+    loser: string
+    winning_score: number
+    losing_score: number
+}
+

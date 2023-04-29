@@ -11,11 +11,11 @@ export const DiceWrapper = styled.div`
 
 export const RollingDieWrapper = styled.div`
     animation: 0.75s ${rollAnimation};
-    padding: 10px;
+    padding: 5px;
     margin: 5px;
 `;
 
 export const DieWrapper = styled.div`
-    padding: 10px;
+    padding: 5px;
     margin: 5px;
 `;

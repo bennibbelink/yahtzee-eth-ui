@@ -27,12 +27,20 @@ const Scoreboard: FC<ScoreboardProps> = (props: ScoreboardProps) => {
             if (a >= 0)
                return partialSum + a
             else return partialSum;
-         }, 0)} / 63` : 0) : props.yahtzee.gameState.player1_scores[i],
+         }, 0)} / 63` : i == 14 ? props.yahtzee.gameState.player1_scores.slice(0, 14).reduce((partialSum, a) => {
+            if (a >= 0)
+               return partialSum + a
+            else return partialSum;
+         }, 0) : 0) : props.yahtzee.gameState.player1_scores[i],
          'player2': props.yahtzee.gameState.player2_scores[i] == -1 ? (i == 6 ? `${props.yahtzee.gameState.player2_scores.slice(0, 6).reduce((partialSum, a) => {
             if (a >= 0)
                return partialSum + a
             else return partialSum;
-         }, 0)} / 63` : 0) : props.yahtzee.gameState.player2_scores[i]
+         }, 0)} / 63` : i == 14 ? props.yahtzee.gameState.player2_scores.slice(0, 14).reduce((partialSum, a) => {
+            if (a >= 0)
+               return partialSum + a
+            else return partialSum;
+         }, 0) :0) : props.yahtzee.gameState.player2_scores[i]
       }
    }
    let columns: Column[] = [
