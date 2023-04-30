@@ -5,9 +5,8 @@ import { GameOver, State } from '../Types';
 export default class Yahtzee {
 
     static emptyAdd = "0x0000000000000000000000000000000000000000";
-    contractAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
     instance: any
-    static web3: any = new Web3(new Web3.providers.WebsocketProvider('ws://127.0.0.1:8545'))
+    static web3: any = new Web3(new Web3.providers.WebsocketProvider(process.env.PROVIDER ? process.env.PROVIDER : 'ws://127.0.0.1:8545'))
     static ethereum: any = Yahtzee.web3.eth;
     currentAccount: string = Yahtzee.emptyAdd;
     key: string = Yahtzee.emptyAdd;
