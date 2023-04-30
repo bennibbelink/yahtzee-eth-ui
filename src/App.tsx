@@ -86,9 +86,6 @@ function App() {
       <body className="App-body">
       { 
               yahtzee ? (
-                playerStatus === NOT_IN_STARTED_GAME ?  <div>Game in progress, please wait for the next game to start.</div> :
-                playerStatus === IN_GAME_FIRST ? <div> Waiting for another player to join... </div> : 
-                playerStatus === IN_STARTED_GAME ? (
                 gameOver ? 
                 <StyledForm>
                   <StyledLabel>{gameOver.winner == yahtzee.currentAccount ? "You won!!!" : "You lost!!!"}</StyledLabel>
@@ -102,7 +99,10 @@ function App() {
                       setState(init_state);
                       setGameOver(null);
                     }}>Play again!</StyledButton>
-                </StyledForm> : 
+                </StyledForm> :
+                playerStatus === NOT_IN_STARTED_GAME ?  <div>Game in progress, please wait for the next game to start.</div> :
+                playerStatus === IN_GAME_FIRST ? <div> Waiting for another player to join... </div> : 
+                playerStatus === IN_STARTED_GAME ? (
                     <div style={{display: 'flex', flexDirection: 'column', justifyItems: 'center'}}>
                       <Scoreboard yahtzee={yahtzee}/>
                       <Dice yahtzee={yahtzee} rolling={rolling}/>

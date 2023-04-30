@@ -54,19 +54,9 @@ export default class Yahtzee {
         this.instance.events.GameOver(options).on('data', (ev: any) => this.gameOverHandler(ev));
         this.instance.events.Selected(options).on('data', (ev: any) => this.selectedHandler(ev));
 
-        this.instance.events.DefaultEvent(options).on('data', (ev: any) => this.defaultHandler(ev));
-
-        Yahtzee.ethereum.subscribe('logs', {address: this.instance.options.address}).on('data', (ev: any) => {
-            console.log(ev)
-        })
-
         await this.dumpScore();
         await this.dumpTurn();
         await this.dumpDice();
-    }
-
-    defaultHandler(ev: any) {
-        console.log("default event receieved")
     }
 
     diceStateHandler(ev: any) {
@@ -190,8 +180,8 @@ export default class Yahtzee {
             {
                 data: encodedABI,
                 from: this.currentAccount,
-                // gas: 3000000,
-                // gasPrice: 20000000000,
+                gas: 3000000,
+                gasPrice: 20000000000,
                 to: this.instance.options.address,
             },
             this.key
