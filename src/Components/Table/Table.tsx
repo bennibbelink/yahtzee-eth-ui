@@ -73,7 +73,7 @@ const Table: FC<TableProps> = (props: TableProps) => {
                 { // loop over the rows cells 
                   row.cells.map((cell, i) => (
                       <TDWrapper style={
-                        usedCat(rowind, i) ? (i === 1 ? {color: 'mediumturquoise'} : {color: 'lightgreen'}) : {color : 'darkgray'}}
+                        usedCat(rowind, i) ? (i === 1 ? {color: 'orchid'} : {color: 'lightgreen'}) : {color : 'darkgray'}}
                         onClick={() => onclick(rowind, i)} {...cell.getCellProps()}>
                         {cell.render('Cell')}
                       </TDWrapper>

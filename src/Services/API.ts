@@ -5,15 +5,13 @@ import { GameOver, State } from '../Types';
 export default class Yahtzee {
 
     static emptyAdd = "0x0000000000000000000000000000000000000000";
-    contractAddress = "0x9D7d2d175C27aa5D9BF03bf4cB3E1B2482D77Dcd";
+    contractAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
     instance: any
-    static web3: any = new Web3('ws://127.0.0.1:8545')
+    static web3: any = new Web3(new Web3.providers.WebsocketProvider('ws://127.0.0.1:8545'))
     static ethereum: any = Yahtzee.web3.eth;
     currentAccount: string = Yahtzee.emptyAdd;
     key: string = Yahtzee.emptyAdd;
     chainId: any;
-
-    sendCount: number = 0
 
     gameState: State  = {
         player1: Yahtzee.emptyAdd,
@@ -47,7 +45,7 @@ export default class Yahtzee {
     async setup() {        
         const Yaht = require('../ContractABI/Yahtzee.json');
         const networkData = Yaht.networks[await Yahtzee.getChainId()];
-        this.instance = new Yahtzee.ethereum.Contract(Yaht.abi, networkData.address);
+        this.instance = new Yahtzee.ethereum.Contract(Yaht.abi, networkData['address']);
 
         let options = {fromBlock: 'finalized'};
         this.instance.events.Turn(options).on('data', (ev: any) => this.turnHandler(ev));
@@ -56,6 +54,8 @@ export default class Yahtzee {
         this.instance.events.GameOver(options).on('data', (ev: any) => this.gameOverHandler(ev));
         this.instance.events.Selected(options).on('data', (ev: any) => this.selectedHandler(ev));
 
+        this.instance.events.DefaultEvent(options).on('data', (ev: any) => this.defaultHandler(ev));
+
         Yahtzee.ethereum.subscribe('logs', {address: this.instance.options.address}).on('data', (ev: any) => {
             console.log(ev)
         })
@@ -63,6 +63,10 @@ export default class Yahtzee {
         await this.dumpScore();
         await this.dumpTurn();
         await this.dumpDice();
+    }
+
+    defaultHandler(ev: any) {
+        console.log("default event receieved")
     }
 
     diceStateHandler(ev: any) {
@@ -161,7 +165,8 @@ export default class Yahtzee {
             const query = this.instance.methods.bank_roll(category);
             this.sendSignedTransaction(query).then(result => {
                 resolve(result);
-            }).catch((err: Error) => {
+            }).catch((err: any) => {
+                console.log(err)
                 reject(this.parseError(err));
             });
         });
@@ -180,19 +185,16 @@ export default class Yahtzee {
     }
 
     async sendSignedTransaction(query: any): Promise<any> {
-        console.log(this.sendCount);
-        this.sendCount += 1;
         const encodedABI = query.encodeABI();
         const signedTx = await Yahtzee.ethereum.accounts.signTransaction(
             {
                 data: encodedABI,
                 from: this.currentAccount,
-                gas: 3000000,
-                gasPrice: 20000000000,
+                // gas: 3000000,
+                // gasPrice: 20000000000,
                 to: this.instance.options.address,
             },
-            this.key,
-            false,
+            this.key
         );
         return Yahtzee.ethereum.sendSignedTransaction(signedTx.rawTransaction);
     }

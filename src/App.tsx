@@ -50,8 +50,9 @@ function App() {
     if (chainId === "")
       getChainId();
     if (yahtzee) {
-      console.log(yahtzee.gameState);
+      // console.log(yahtzee.gameState);
       setPlayerStatus(getPlayerStatus());
+      console.log(playerStatus)
     }
   });
 
@@ -84,7 +85,7 @@ function App() {
       </header>
       <body className="App-body">
       { 
-              yahtzee && playerStatus >= 0 ? (
+              yahtzee ? (
                 playerStatus === NOT_IN_STARTED_GAME ?  <div>Game in progress, please wait for the next game to start.</div> :
                 playerStatus === IN_GAME_FIRST ? <div> Waiting for another player to join... </div> : 
                 playerStatus === IN_STARTED_GAME ? (
@@ -93,8 +94,12 @@ function App() {
                   <StyledLabel>{gameOver.winner == yahtzee.currentAccount ? "You won!!!" : "You lost!!!"}</StyledLabel>
                   <StyledLabel>{gameOver.winner == yahtzee.gameState.player1 ? gameOver.winning_score : gameOver.losing_score} 
                   - {gameOver.winner == yahtzee.gameState.player2 ? gameOver.winning_score : gameOver.losing_score}</StyledLabel>
-                  <StyledButton onClick={() => {
-                      yahtzee.joinGame();
+                  <StyledButton onClick={async () => {
+                      await yahtzee.dumpTurn();
+                      await yahtzee.dumpScore();
+                      await yahtzee.dumpDice();
+                      await yahtzee.joinGame();
+                      setState(init_state);
                       setGameOver(null);
                     }}>Play again!</StyledButton>
                 </StyledForm> : 

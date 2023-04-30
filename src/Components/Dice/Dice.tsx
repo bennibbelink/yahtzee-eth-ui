@@ -53,7 +53,7 @@ const Dice: FC<DiceProps> = (props: DiceProps) => {
    );
 
    function onclick(ind: number) {
-      if (props.yahtzee.gameState.turn === props.yahtzee.currentAccount && props.yahtzee.gameState.rollsLeft < 3) {
+      if (props.yahtzee.gameState.turn === props.yahtzee.currentAccount && props.yahtzee.gameState.rollsLeft < 3 && !props.rolling) {
          props.yahtzee.toggleSelectDie(ind);
       }
    }
