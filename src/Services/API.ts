@@ -32,7 +32,7 @@ export default class Yahtzee {
         rolling: boolean, setRolling: React.Dispatch<React.SetStateAction<boolean>>,
         setGameOver: React.Dispatch<React.SetStateAction<GameOver | null>>) 
         {
-        this.currentAccount = address;
+        this.currentAccount = address.toLowerCase();
         this.key = privateKey;
         this.gameState = state;
         this.setState = setState;
@@ -72,8 +72,8 @@ export default class Yahtzee {
 
     scoreStateHandler(ev: any) {
         console.log("ScoreState event recieved")
-        this.gameState.player1 = ev.returnValues.players[0];
-        this.gameState.player2 = ev.returnValues.players[1];
+        this.gameState.player1 = ev.returnValues.players[0].toLowerCase();
+        this.gameState.player2 = ev.returnValues.players[1].toLowerCase();
         for (let i = 0; i < ev.returnValues.player_scores.length; i++) {
             this.gameState.player1_scores[i] = parseInt(ev.returnValues.player_scores[i][0]);
             this.gameState.player2_scores[i] = parseInt(ev.returnValues.player_scores[i][1]);
