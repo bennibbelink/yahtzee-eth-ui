@@ -86,8 +86,8 @@ export default class Yahtzee {
     gameOverHandler(ev: any) {
         console.log('GameOver event recieved')
         let go: GameOver = {
-            winner: ev.returnValues.winner,
-            loser: ev.returnValues.loser,
+            winner: ev.returnValues.winner.toLowerCase(),
+            loser: ev.returnValues.loser.toLowerCase(),
             winning_score: ev.returnValues.winning_score,
             losing_score: ev.returnValues.losing_score
         };
@@ -96,7 +96,7 @@ export default class Yahtzee {
 
     turnHandler(ev: any) {
         console.log('Turn event recieved');
-        this.gameState.turn = ev.returnValues.turn;
+        this.gameState.turn = ev.returnValues.turn.toLowerCase();
         let shallow = Object.assign({}, this.gameState);
         this.setState(shallow);
     }
@@ -180,8 +180,9 @@ export default class Yahtzee {
                 data: encodedABI,
                 from: this.currentAccount,
                 gas: 3000000,
-                gasPrice: 20000000000,
+                gasPrice: 2000000000,
                 to: this.instance.options.address,
+                value: 0
             },
             this.key
         );
